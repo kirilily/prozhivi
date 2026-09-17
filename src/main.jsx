@@ -1,11 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowDown, ArrowRight, BookOpen, Check, Leaf, LockKeyhole, MapPin, NotebookPen, Paperclip, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowRight, BookOpen, Check, Leaf, LockKeyhole, MapPin, NotebookPen, Paperclip } from 'lucide-react'
 import { bonuses, chapters, freeTasks } from './content'
 import './styles.css'
 
-const PROGRESS_KEY = 'prozhivi-v2-progress'
-const HABIT_KEY = 'prozhivi-v2-habit'
+const PROGRESS_KEY = 'prozhivi-v3-progress'
+const HABIT_KEY = 'prozhivi-v3-habit'
 
 function readStorage(key, fallback){
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
@@ -17,26 +17,20 @@ function App(){
   const [selectedTask, setSelectedTask] = useState(freeTasks[0])
   const [progress, setProgress] = useState(()=>readStorage(PROGRESS_KEY, {}))
   const [habit, setHabit] = useState(()=>readStorage(HABIT_KEY, {name:'', why:'', days:[]}))
-  const [toast, setToast] = useState('')
   const chapterRef = useRef(null)
 
-  const savedTraces = useMemo(()=>freeTasks.filter(t=>progress[t.id]),[progress])
-  const doneCount = savedTraces.length
+  const doneTasks = useMemo(()=>freeTasks.filter(t=>progress[t.id]),[progress])
+  const doneCount = doneTasks.length
 
-  const saveTask = (id)=>{
-    const willSave = !progress[id]
-    const next = {...progress, [id]: willSave}
+  const toggleTask = (id)=>{
+    const next = {...progress, [id]: !progress[id]}
     setProgress(next)
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(next))
-    if(willSave){
-      setToast('След добавлен в твою книгу')
-      window.setTimeout(()=>setToast(''), 2100)
-    }
   }
 
   const chooseChapter = (chapter)=>{
     setActiveChapter(chapter)
-    setTimeout(()=>chapterRef.current?.scrollIntoView({behavior:'smooth', block:'start'}), 30)
+    setTimeout(()=>chapterRef.current?.scrollIntoView({behavior:'smooth', block:'start'}), 40)
   }
 
   const toggleHabitDay = (i)=>{
@@ -53,171 +47,123 @@ function App(){
   }
 
   return <main className="site-shell">
-    {toast && <div className="trace-toast"><span><Leaf size={15}/></span>{toast}</div>}
-
-    <header className="nav-shell">
-      <a className="wordmark" href="#top">ПРОЖИВИ<span>выпуск 01 · осень</span></a>
-      <nav><a href="#route">маршрут</a><a href="#chapter">глава 01</a><a href="#archive">мой архив</a><a href="#bonus">между страницами</a></nav>
-      <a className="nav-cta" href="#chapter">открыть главу <ArrowRight size={14}/></a>
+    <header className="top-nav">
+      <a className="logo" href="#top">ПРОЖИВИ<span>сезонный дневник</span></a>
+      <nav><a href="#route">карта</a><a href="#chapter">главы</a><a href="#bonus">между страницами</a></nav>
+      <a className="nav-action" href="#chapter">открыть первую главу <ArrowRight size={14}/></a>
     </header>
 
-    <section className="hero-scene" id="top">
-      <div className="hero-grain" aria-hidden="true"/>
-      <div className="hero-copy">
-        <div className="edition-row"><span className="issue-label">ПРОЖИВИ / ВЫПУСК 01</span><span className="edition-number">экземпляр № 001</span></div>
-        <h1>Открой<br/><i>свою</i> осень.</h1>
-        <p className="hero-lead">Не нужно успевать. Нужно однажды заметить. Сайт ведёт по маршруту, а настоящая книга сезона остаётся у тебя — на бумаге.</p>
-        <div className="hero-actions">
-          <button className="primary" onClick={()=>setBookOpen(v=>!v)}><BookOpen size={17}/>{bookOpen?'закрыть книгу':'раскрыть книгу'}</button>
-          <a href="#route" className="text-link">увидеть маршрут <ArrowDown size={15}/></a>
-        </div>
-        <div className="hand-note note-one">твоя осень уже происходит ↗</div>
+    <section className="cinematic-hero" id="top">
+      <div className="hero-photo"/>
+      <div className="hero-darken"/>
+      <div className="hero-content">
+        <span className="micro">ПРОЖИВИ / ВЫПУСК 01</span>
+        <h1><strong>ПРОЖИВИ</strong><br/><span>Открой</span> <i>свою осень.</i></h1>
+        <p>В начале — пустой блокнот.<br/>В конце — твоя личная книга этой осени.</p>
+        <div className="hero-buttons"><button onClick={()=>setBookOpen(true)}>открыть книгу <ArrowRight size={15}/></button><a href="#route">увидеть маршрут <ArrowDown size={14}/></a></div>
+        <div className="hand-note hero-note">твоя осень уже начинается →</div>
       </div>
 
-      <div className={`book-stage ${bookOpen?'is-open':''}`}>
-        <div className="desk-shadow"/>
-        <div className="book-shadow"/>
-        <div className="book-object" role="button" tabIndex={0} onClick={()=>setBookOpen(true)} onKeyDown={e=>e.key==='Enter'&&setBookOpen(true)} aria-label="Раскрыть книгу ПРОЖИВИ">
-          <div className="book-pages-under"/>
-          <div className="book-spread">
-            <div className="book-page page-left">
-              <span className="page-kicker">00 / КАК ЭТО УСТРОЕНО</span>
-              <h2>Одна глава.<br/>Одна точка.<br/><em>И что-нибудь на память.</em></h2>
-              <p>Выбирай то, на что есть силы. Всё важное переносится в твой бумажный дневник.</p>
-              <span className="pencil-note">не идеальный дневник. твой.</span>
-              <span className="page-stamp">SEASON / 26</span>
-            </div>
-            <div className="book-page page-right">
-              <span className="page-kicker">ОГЛАВЛЕНИЕ / БЕСПЛАТНО</span>
-              <div className="toc-mini">
-                <button onClick={(e)=>{e.stopPropagation();chooseChapter(chapters[0])}}><b>01</b><span>Разрешение начать</span><small>открыта</small></button>
-                {chapters.slice(1,5).map(c=><div key={c.id}><b>{c.n}</b><span>{c.title}</span><LockKeyhole size={12}/></div>)}
-              </div>
-              <div className="paper-clip"><Paperclip size={19}/></div>
-              <div className="torn-note">сюда будут<br/>попадать твои следы</div>
-            </div>
+      <div className="hero-collage">
+        <div className="hero-polaroid hp-one"><div className="photo rainy"/><span>город после дождя</span></div>
+        <div className="hero-polaroid hp-two"><div className="photo cozy"/><span>маленькие моменты</span></div>
+        <div className="paper-note pn-one">Больше жизни<br/>в простых днях.</div>
+        <div className="ticket-stub">ОСЕНЬ<br/><b>время<br/>замедлиться</b><small>экз. 001</small></div>
+      </div>
+
+      <div className={`lux-book ${bookOpen?'open':''}`}>
+        <div className="book-under"/>
+        <div className="book-inside">
+          <div className="inside-page left-page">
+            <span className="micro dark">00 / КАК ЭТО УСТРОЕНО</span>
+            <h2>Твоя осень,<br/>которую можно<br/><i>сохранить.</i></h2>
+            <p>Выбирай главу, открывай одну точку и оставляй один настоящий след в бумажном дневнике.</p>
+            <div className="small-hand">не нужно успевать всё</div>
           </div>
-          <div className="book-cover">
-            <span className="cover-series">интерактивная книга твоей осени</span>
-            <strong>ПРОЖИВИ</strong>
-            <div className="cover-leaf"><Leaf size={55}/></div>
-            <small>ВЫПУСК 01 · 2026</small>
-            <span className="cover-ribbon">коснись обложки — книга раскроется</span>
-            <span className="emboss-line">PERSONAL SEASON ARCHIVE</span>
+          <div className="inside-page right-page">
+            <span className="micro dark">ОГЛАВЛЕНИЕ</span>
+            <div className="book-menu">
+              <button onClick={()=>chooseChapter(chapters[0])}><b>01</b><span>Разрешение начать</span><small>открыта</small></button>
+              {chapters.slice(1,5).map(c=><div key={c.id}><b>{c.n}</b><span>{c.title}</span><LockKeyhole size={11}/></div>)}
+            </div>
+            <div className="paperclip"><Paperclip size={19}/></div>
           </div>
         </div>
+        <button className="book-cover" onClick={()=>setBookOpen(true)} aria-label="Открыть книгу ПРОЖИВИ">
+          <span className="emboss-top">личная книга твоей осени</span>
+          <strong>ПРОЖИВИ</strong>
+          <Leaf className="emboss-leaf" size={54}/>
+          <span className="emboss-bottom">ВЫПУСК 01</span>
+          <span className="book-band">{bookOpen?'книга открыта':'открыть книгу'} <ArrowRight size={15}/></span>
+        </button>
       </div>
-
-      <div className="scrap scrap-a"><span>ОСЕНЬ</span><b>время<br/>замедлиться</b><small>экз. 001</small></div>
-      <div className="scrap scrap-b"><span>больше жизни</span><b>в обычных днях</b></div>
-      <div className="masking-tape tape-a"/>
     </section>
 
-    <section className="principle-strip">
-      <div className="tape-label">маленькое правило выпуска</div>
-      <p>Сайт не должен удерживать тебя внутри экрана. <strong>Он должен вернуть тебя в твою жизнь.</strong></p>
-      <span className="hand-note">одного задания сегодня достаточно</span>
+    <section className="paper-intro ripped">
+      <div className="paper-copy"><span className="micro dark">ГЛАВА 01</span><h2>Разрешение<br/>начать</h2><h3>Сегодня достаточно одной точки.</h3><p>Не нужно всё успевать. Просто открой блокнот и поставь первую точку. С этого начинается твоя осень.</p><div className="today-slip"><span>СЕГОДНЯШНЯЯ ТОЧКА:</span><b>○ заметить что-то красивое по дороге сегодня.</b></div></div>
+      <div className="open-book-visual">
+        <div className="book-left-art"><div className="taped-photo autumn-photo"/><div className="torn-note">Осень — это не конец,<br/>а более честное начало.</div><Leaf className="dry-leaf" size={42}/></div>
+        <div className="book-right-art"><div className="handwriting">Сегодня я заметила,<br/>как золотой свет ложится<br/>на старые фасады.<br/>И кажется, именно<br/>ради этого и стоит<br/>быть здесь. ♡</div><div className="taped-photo rainy-photo"/><div className="handwriting small">маленькие моменты<br/>делают большую жизнь.</div></div>
+        <div className="chapter-tabs">{chapters.map(c=><button key={c.id} className={c.id===activeChapter.id?'active':''} onClick={()=>chooseChapter(c)}>{c.n}</button>)}</div>
+      </div>
+      <div className="side-manifesto"><strong>Одна глава.<br/>Одна точка в день.<br/>Один настоящий след.</strong><p>Сайт помогает заметить, запомнить важное и собрать из простых дней настоящую историю — в твоём темпе.</p><a href="#chapter">как это работает <ArrowRight size={14}/></a></div>
     </section>
 
-    <section className="archive-strip" id="archive">
-      <div className="archive-label"><span>ЛИЧНЫЙ АРХИВ ГЛАВЫ 01</span><b>{doneCount ? `${doneCount} ${doneCount===1?'след уже лежит':'следа уже лежат'} в книге` : 'пока чистая страница'}</b><small>Здесь нет процентов. Просто вещи, которые ты решила не потерять.</small></div>
-      <div className="trace-pockets">
-        {freeTasks.map((task,i)=>{
-          const saved = !!progress[task.id]
-          return <button key={task.id} className={`trace-pocket ${saved?'filled':''}`} onClick={()=>{setSelectedTask(task); chapterRef.current?.scrollIntoView({behavior:'smooth', block:'start'})}}>
-            <span className="pocket-no">0{i+1}</span>
-            <div className="pocket-art">{saved?<><Leaf size={26}/><em>сохранено</em></>:<span>место для<br/>будущего следа</span>}</div>
-            <b>{saved?task.title:task.verb.toLowerCase()}</b>
-          </button>
-        })}
-      </div>
-      <div className="archive-handnote hand-note">архив растёт не по плану, а вместе с тобой</div>
-    </section>
-
-    <section className="route-section torn-top" id="route">
-      <div className="route-intro">
-        <div><span className="section-no">01 / ТВОЙ СЕЗОН</span><h2>Двенадцать глав.<br/><i>Один живой маршрут.</i></h2></div>
-        <p>Не линейный марафон и не список «100 дел». Открывай главы в своём темпе, выбирай маленькое действие и сохраняй один настоящий след.</p>
-      </div>
-
-      <div className="route-board">
-        <svg className="route-thread" viewBox="0 0 1200 760" preserveAspectRatio="none" aria-hidden="true"><path d="M70 120 C210 10 310 210 430 130 S650 30 760 160 S1000 260 1100 150 C1190 70 1110 360 990 350 S760 280 690 420 S470 540 340 430 S80 390 130 570 C180 720 400 580 540 625 S810 720 930 580 S1110 510 1160 660"/></svg>
-        <div className="map-stamp"><MapPin size={16}/> карта сезона</div>
+    <section className="route-section" id="route">
+      <div className="route-head"><span className="micro dark">ТВОЙ СЕЗОН</span><h2>Двенадцать глав.<br/><i>Один живой маршрут.</i></h2><p>Каждая глава — маленькое приглашение: выйти из привычного, заметить красоту рядом и добавить в свою осень что-то настоящее.</p></div>
+      <div className="route-map">
+        <div className="map-paper-layer one"/><div className="map-paper-layer two"/>
+        <svg className="red-route" viewBox="0 0 1200 680" preserveAspectRatio="none" aria-hidden="true"><path d="M75 95 C180 15 260 180 350 120 S545 45 620 145 S820 220 900 125 C1005 8 1110 145 1060 260 C1005 375 815 290 745 395 S540 535 430 430 S170 370 125 510 C80 655 300 600 450 585 S760 705 860 565 S1080 500 1140 625"/></svg>
+        <div className="map-stamp"><MapPin size={15}/> личная карта сезона</div>
         <div className="route-grid">
-          {chapters.map((c,i)=><button key={c.id} className={`chapter-polaroid p-${i+1} ${c.free?'is-free':'is-locked'} ${activeChapter.id===c.id?'is-active':''}`} onClick={()=>chooseChapter(c)}>
-            <span className="pin"/>
-            <div className={`photo-placeholder photo-${(i%6)+1}`}><span>{c.n}</span><Leaf size={34}/></div>
-            <div className="polaroid-caption"><b>{c.title}</b><small>{c.free?'открыта бесплатно':'предпросмотр · полный сезон'}</small></div>
-            {c.free && doneCount>0 && <span className="chapter-seal"><Leaf size={11}/>{doneCount} следа</span>}
-            {!c.free&&<LockKeyhole className="mini-lock" size={15}/>} 
+          {chapters.map((c,i)=><button key={c.id} onClick={()=>chooseChapter(c)} className={`map-card card-${i+1} ${c.free?'free':'locked'} ${activeChapter.id===c.id?'active':''}`}>
+            <span className="map-pin"/>
+            <div className={`map-photo photo-${(i%4)+1}`}><span>{c.n}</span></div>
+            <div className="map-caption"><b>{c.title}</b><small>{c.free?(doneCount?`${doneCount} следа сохранено`:'открыта бесплатно'):'полный сезон'}</small></div>
+            {!c.free&&<LockKeyhole size={14} className="map-lock"/>}
           </button>)}
         </div>
-        <div className="hand-note route-note">нить ведёт дальше только тогда, когда тебе хочется</div>
+        <div className="hand-note map-note">здесь начинается твоя осень ♡</div>
       </div>
     </section>
 
-    <section className="chapter-scene" id="chapter" ref={chapterRef}>
-      <div className="chapter-topline"><span>ГЛАВА {activeChapter.n} / 12</span><span>{activeChapter.free?'БЕСПЛАТНАЯ ГЛАВА · ОТКРЫТА ПОЛНОСТЬЮ':'ПРЕДПРОСМОТР ПОЛНОГО СЕЗОНА'}</span></div>
-      <div className="chapter-book">
-        <div className="chapter-page intro-page">
-          <span className="section-no">ГЛАВА {activeChapter.n}</span>
-          <h2>{activeChapter.title}</h2>
-          <p className="chapter-mood">{activeChapter.mood}</p>
-          <p>{activeChapter.note}</p>
-          {activeChapter.free ? <>
-            <div className="margin-note">сегодня достаточно<br/>одной точки</div>
-            <div className={`progress-stamp ${doneCount?'has-traces':''}`}><span>{doneCount||'—'}</span>{doneCount?'следа в архиве':'архив пока пуст'}</div>
-            <div className="chapter-passport"><small>личный сезонный архив</small><b>01</b><span>глава открыта</span></div>
-          </> : <div className="locked-note"><LockKeyhole/><b>Задания внутри закрыты.</b><span>Тему и настроение главы можно увидеть заранее — без притворного «бесплатного доступа».</span></div>}
+    <section className="chapter-section" id="chapter" ref={chapterRef}>
+      <div className="chapter-heading"><div><span className="micro dark">ГЛАВА {activeChapter.n} / 12</span><h2>{activeChapter.title}</h2><p>{activeChapter.note}</p></div><div className="chapter-label">{activeChapter.free?'открыта полностью':'предпросмотр полного сезона'}</div></div>
+
+      <div className="chapter-journal">
+        <div className="journal-left">
+          <span className="micro dark">ВЫБЕРИ ОДНУ ТОЧКУ</span>
+          {activeChapter.free ? <div className="task-list">{freeTasks.map((t,i)=><button key={t.id} className={`${selectedTask.id===t.id?'active':''} ${progress[t.id]?'done':''}`} onClick={()=>setSelectedTask(t)}><span className="task-no">{String(i+1).padStart(2,'0')}</span><div><small>{t.verb}</small><b>{t.title}</b></div>{progress[t.id]&&<Check size={16}/>}</button>)}</div> : <div className="locked-card"><LockKeyhole/><b>Внутри — шесть точек.</b><p>Тема главы видна заранее, но сами задания откроются только в полном сезоне.</p></div>}
         </div>
 
-        <div className="chapter-page action-page">
+        <div className="journal-right">
           {activeChapter.free ? <>
-            <div className="task-tabs">
-              {freeTasks.map((t,i)=><button key={t.id} className={`${selectedTask.id===t.id?'active':''} ${progress[t.id]?'done':''}`} onClick={()=>setSelectedTask(t)}><span>{String(i+1).padStart(2,'0')} · {t.verb}</span><b>{t.title}</b>{progress[t.id]&&<Check size={14}/>}</button>)}
-            </div>
-            <article className="task-sheet">
-              <div className="task-sheet-top"><span className="task-label">СЕГОДНЯШНЯЯ ТОЧКА / {selectedTask.verb}</span><span className="serial">PROZHIVI · 01/{String(freeTasks.indexOf(selectedTask)+1).padStart(2,'0')}</span></div>
-              <h3>{selectedTask.title}</h3>
-              <p>{selectedTask.note}</p>
-              <div className="journal-prompt"><NotebookPen size={20}/><span>{selectedTask.prompt}</span></div>
-              <div className="task-actions"><button className={`save-trace ${progress[selectedTask.id]?'saved':''}`} onClick={()=>saveTask(selectedTask.id)}>{progress[selectedTask.id]?<><Check/>лежит в архиве</>:<><Leaf/>сохранить этот след</>}</button>{progress[selectedTask.id]&&<a href="#archive" className="archive-link">посмотреть в архиве →</a>}</div>
-              {progress[selectedTask.id]&&<div className="collected-card"><Sparkles size={17}/><div><small>КОЛЛЕКЦИОННЫЙ СЛЕД</small><b>{selectedTask.title}</b><span>Добавлен в личную книгу этой осени.</span></div></div>}
-            </article>
-          </> : <div className="preview-page"><span className="section-no">ПРЕВЬЮ</span><h3>{activeChapter.title}</h3><p>{activeChapter.note}</p><div className="sealed-envelope"><LockKeyhole/><b>Шесть точек откроются в полном сезоне</b><span>Чтение, наблюдение, прогулка, запись, маленький ритуал и сохранённый след.</span></div><button className="primary">открыть полный сезон <ArrowRight size={16}/></button></div>}
+            <span className="micro dark">СЕГОДНЯ / {selectedTask.verb}</span>
+            <h3>{selectedTask.title}</h3><p>{selectedTask.note}</p>
+            <div className="journal-note"><NotebookPen size={20}/><span>{selectedTask.prompt}</span></div>
+            <button className={`save-button ${progress[selectedTask.id]?'saved':''}`} onClick={()=>toggleTask(selectedTask.id)}>{progress[selectedTask.id]?<><Check/>след уже в архиве</>:<><Leaf/>сохранить этот след</>}</button>
+            <div className="chapter-passport"><span className="micro dark">ЛИЧНЫЙ АРХИВ ГЛАВЫ</span><div className="stamp-row">{freeTasks.map(t=><div key={t.id} className={`stamp ${progress[t.id]?'collected':''}`}>{progress[t.id]?<><Leaf size={17}/><small>{t.verb}</small></>:<span/>}</div>)}</div><div className="passport-note">Не баллы. Не серия. Просто следы, которые уже появились.</div></div>
+          </> : <div className="preview-spread"><span className="micro dark">ПРЕВЬЮ</span><h3>{activeChapter.title}</h3><p>{activeChapter.note}</p><div className="sealed"><LockKeyhole/><b>6 точек внутри полного сезона</b></div><button className="save-button">открыть полный сезон <ArrowRight size={15}/></button></div>}
         </div>
       </div>
-
-      {activeChapter.free && <div className="task-polaroid-board">
-        <div className="straight-thread"/>
-        {freeTasks.map((t,i)=><button key={t.id} className={`task-polaroid r-${i%3} ${selectedTask.id===t.id?'active':''} ${progress[t.id]?'done':''}`} onClick={()=>setSelectedTask(t)}><span className="clip-top"/><div className={`task-thumb task-photo-${i+1}`}><span>{String(i+1).padStart(2,'0')}</span><Leaf size={26}/></div><small>{t.verb}</small><b>{t.title}</b>{progress[t.id]&&<em>В АРХИВЕ</em>}</button>)}
-        <div className="hand-note polaroid-note">выбирай не «следующее», а то, что откликается сегодня</div>
-      </div>}
     </section>
 
-    <section className="habit-section torn-top">
-      <div className="habit-copy"><span className="section-no">ЛИЧНЫЙ ТРЕКЕР · 30 ДНЕЙ</span><h2>Мой ритм осени.</h2><p>Здесь не нужно держать серию. Просто отмечай дни, когда получилось повторить своё действие.</p><div className="hand-note">пропуски тоже считаются жизнью</div></div>
-      <div className="habit-card">
-        <span className="free-badge">ОДНА ПРИВЫЧКА БЕСПЛАТНО</span>
-        <label>Что хочется повторять чаще?<input value={habit.name} onChange={e=>saveHabitField('name',e.target.value)} placeholder="например: вечерняя прогулка"/></label>
-        <label>Зачем мне это <small>необязательно</small><textarea value={habit.why} onChange={e=>saveHabitField('why',e.target.value)} placeholder="короткая личная причина"/></label>
-        <div className="habit-days">{Array.from({length:30},(_,i)=><button key={i} className={habit.days.includes(i)?'marked':''} onClick={()=>toggleHabitDay(i)}><span>{i+1}</span>{habit.days.includes(i)&&<Check size={12}/>}</button>)}</div>
-        <div className="habit-total">не серия · просто отмечено дней: <b>{habit.days.length}</b></div>
-      </div>
+    <section className="habit-section">
+      <div className="habit-copy"><span className="micro">НЕОБЯЗАТЕЛЬНАЯ СТРАНИЦА</span><h2>Мой ритм осени.</h2><p>Одна привычка бесплатно. Без серии и без «начинать заново» после пропуска.</p><div className="hand-note light">пропуски тоже считаются жизнью</div></div>
+      <div className="habit-sheet"><div className="tape top"/><label>Что хочется повторять чаще?<input value={habit.name} onChange={e=>saveHabitField('name',e.target.value)} placeholder="например: вечерняя прогулка"/></label><label>Зачем мне это <small>необязательно</small><textarea value={habit.why} onChange={e=>saveHabitField('why',e.target.value)} placeholder="короткая личная причина"/></label><div className="habit-days">{Array.from({length:30},(_,i)=><button key={i} className={habit.days.includes(i)?'marked':''} onClick={()=>toggleHabitDay(i)}>{i+1}{habit.days.includes(i)&&<Check size={11}/>}</button>)}</div><div className="habit-summary">отмечено дней: <b>{habit.days.length}</b></div></div>
     </section>
 
     <section className="bonus-section" id="bonus">
-      <div className="bonus-heading"><span className="section-no">МЕЖДУ СТРАНИЦАМИ</span><h2>То, что можно<br/><i>положить внутрь.</i></h2><p>Здесь будут только утверждённые материалы. Пока открыт один бесплатный выпуск — осенняя книга рецептов.</p></div>
-      <div className="bonus-stack">{bonuses.map((b,i)=><article key={b.n} className={`bonus-ticket ${b.free?'free':''} t-${i}`}><span className="ticket-no">{b.n}</span><div><small>{b.tag}</small><h3>{b.title}</h3><p>{b.text}</p><button className="folio-button">раскрыть вложение <ArrowRight size={14}/></button></div><span className="ticket-arrow">↗</span><span className="bonus-tape"/></article>)}</div>
+      <div className="bonus-head"><span className="micro dark">МЕЖДУ СТРАНИЦАМИ</span><h2>То, что можно<br/><i>положить внутрь.</i></h2><p>Здесь не будет случайных «бонусов ради бонусов». Оставляем только то, что действительно продолжает дневник.</p></div>
+      <div className="bonus-cards">{bonuses.map((b,i)=><article key={b.n}><span className="bonus-no">{b.n}</span><div className="bonus-photo cozy"/><small>{b.tag}</small><h3>{b.title}</h3><p>{b.text}</p><button>открыть <ArrowRight size={14}/></button></article>)}</div>
     </section>
 
-    <section className="final-scene torn-top">
-      <div className="empty-journal"><div/><div/></div>
-      <div className="final-copy"><span className="section-no">ПОСЛЕДНЯЯ СТРАНИЦА</span><h2>К ноябрю блокнот уже не будет пустым.</h2><p>Останется то, что обычно забывается: куда ходила, что читала, какой был свет, что готовила и с кем пила чай.</p><div className="season-facts"><span><b>12</b> глав</span><span><b>6</b> точек в каждой</span><span><b>∞</b> свой темп</span></div><button className="primary">открыть полный сезон <ArrowRight size={17}/></button></div>
-      <div className="filled-journal"><div className="mini-photo"/><div className="mini-note">моя осень<br/>была здесь ♡</div><div className="mini-leaf"><Leaf/></div></div>
+    <section className="final-section ripped-top">
+      <div className="final-copy"><span className="micro dark">В КОНЦЕ СЕЗОНА</span><h2>Из точек<br/>рождается<br/><i>твоя книга.</i></h2><p>Фотографии, мысли, впечатления, билеты, зарисовки. То, что казалось обычными днями, станет историей, к которой захочется возвращаться.</p></div>
+      <div className="final-books"><div className="blank-book"><span>в начале — пустой блокнот</span></div><ArrowRight className="final-arrow"/><div className="filled-book"><div className="mini-polaroid rainy"/><div className="mini-paper">эта осень<br/>была здесь ♡</div><Leaf size={30}/><span>в конце — твоя книга осени</span></div></div>
     </section>
 
-    <footer><div className="wordmark">ПРОЖИВИ<span>бумажный дневник для настоящих моментов</span></div><p>Не ещё один список на осень. Твоя осень, которую ты действительно проживёшь и сохранишь.</p></footer>
+    <footer><div className="logo">ПРОЖИВИ<span>бумажный дневник для настоящих моментов</span></div><p>Не ещё один список на осень. Твоя осень, которую ты действительно проживёшь и сохранишь.</p></footer>
   </main>
 }
 
