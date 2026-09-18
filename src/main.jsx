@@ -2,12 +2,20 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowDown, ArrowRight, Check, ChevronDown, ChevronUp, Leaf, LockKeyhole, MapPin, NotebookPen, Paperclip, Sparkles, Volume2, VolumeX, X } from 'lucide-react'
 import { SITE_BUILD, bonuses, chapters, freeTasks, previewContent, recipes, watchCategories } from './content'
+import approvedPhotosRaw from './approved-photos.b64?raw'
 import './styles.css'
 import './restore-step1.css'
 import './cleanup-r1.css'
+import './approved-style.css'
 
 const PROGRESS_KEY = 'prozhivi-v3-progress'
 const HABIT_KEY = 'prozhivi-v3-habit'
+const APPROVED_PHOTOS = `data:image/webp;base64,${approvedPhotosRaw.trim()}`
+const PHOTO_POSITIONS = ['0% 0%','33.333% 0%','66.666% 0%','100% 0%','0% 100%','33.333% 100%','66.666% 100%','100% 100%']
+const photoStyle = index => ({backgroundImage:`url("${APPROVED_PHOTOS}")`,backgroundPosition:PHOTO_POSITIONS[index%8]})
+function BrandLogo({compact=false}){
+  return <span className={`brand-word ${compact?'compact':''}`} aria-label="ПРОЖИВИ">{'ПРОЖИВИ'.split('').map((letter,i)=><span key={i}>{letter}</span>)}</span>
+}
 const SOUND_URLS = {
   waves:'https://commons.wikimedia.org/wiki/Special:Redirect/file/NausetBeach.ogg',
   forest:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Sound_of_Forest_(Mookambika_wildlife_sanctuary).ogg',
@@ -42,6 +50,7 @@ function App(){
 
   const doneTasks = useMemo(()=>freeTasks.filter(t=>progress[t.id]),[progress])
   const doneCount = doneTasks.length
+  const selectedTaskIndex = Math.max(0, freeTasks.findIndex(t=>t.id===selectedTask.id))
 
   const toggleTask = id => {
     const next = {...progress, [id]:!progress[id]}
@@ -98,7 +107,7 @@ function App(){
 
   return <main className="site-shell">
     <header className="top-nav">
-      <a className="logo" href="#top">ПРОЖИВИ<span>сезонный дневник</span></a>
+      <a className="logo" href="#top"><BrandLogo compact/><span>сезонный дневник</span></a>
       <nav><a href="#route">карта</a><a href="#chapter">главы</a><a href="#bonus">между страницами</a></nav>
       <a className="nav-action" href="#chapter">открыть первую главу <ArrowRight size={14}/></a>
     </header>
@@ -107,8 +116,9 @@ function App(){
       <div className="hero-photo"/>
       <div className="hero-darken"/>
       <div className="hero-content hero-content-safe">
-        <span className="micro">ПРОЖИВИ / ВЫПУСК 01</span>
-        <h1><strong>ПРОЖИВИ</strong><br/><span>Открой</span> <i>свою осень.</i></h1>
+        <span className="micro">ВЫПУСК 01 · ЛИЧНАЯ КНИГА ОСЕНИ</span>
+        <div className="approved-hero-logo"><BrandLogo/><small>больше, чем каждый день</small></div>
+        <h1 className="hero-editorial-copy">Открой свою осень.</h1>
         <p>В начале — пустой блокнот.<br/>В конце — твоя личная книга этой осени.</p>
         <div className="hero-buttons"><button onClick={()=>setBookOpen(true)}>открыть книгу <ArrowRight size={15}/></button><a href="#route">увидеть маршрут <ArrowDown size={14}/></a></div>
         <div className="ambient-control"><span>реальные звуки</span><button className={ambientMode==='waves'?'active':''} onClick={()=>toggleAmbient('waves')}><Volume2 size={13}/>волны</button><button className={ambientMode==='forest'?'active':''} onClick={()=>toggleAmbient('forest')}><Volume2 size={13}/>лес</button><button className={ambientMode==='rain'?'active':''} onClick={()=>toggleAmbient('rain')}><Volume2 size={13}/>дождь</button><button className={ambientMode==='off'?'active':''} onClick={stopAmbient}><VolumeX size={13}/>выкл</button></div>
@@ -117,8 +127,8 @@ function App(){
       </div>
 
       <div className="hero-collage hero-collage-safe">
-        <div className="hero-polaroid hp-one"><div className="photo rainy"/><span>город после дождя</span></div>
-        <div className="hero-polaroid hp-two"><div className="photo cozy"/><span>маленькие моменты</span></div>
+        <div className="hero-polaroid hp-one"><div className="photo photo-sprite" style={photoStyle(0)}/><span>тот же город, но глубже</span></div>
+        <div className="hero-polaroid hp-two"><div className="photo photo-sprite" style={photoStyle(1)}/><span>маленькие моменты</span></div>
         <div className="paper-note pn-one">Больше жизни<br/>в простых днях.</div>
         <div className="ticket-stub">ОСЕНЬ<br/><b>время<br/>замедлиться</b><small>экз. 001</small></div>
       </div>
@@ -135,22 +145,22 @@ function App(){
 
     <section className="paper-intro ripped clean-intro">
       <div className="paper-copy"><span className="micro dark">ГЛАВА 01</span><h2>Разрешение<br/>начать</h2><h3>Сегодня достаточно одной точки.</h3><p>Не нужно всё успевать. Просто открой блокнот и поставь первую точку. С этого начинается твоя осень.</p><div className="today-slip"><span>СЕГОДНЯШНЯЯ ТОЧКА:</span><b>○ заметить что-то красивое по дороге сегодня.</b></div></div>
-      <div className="open-book-visual clean-open-book"><div className="book-left-art"><div className="taped-photo autumn-photo"/><div className="torn-note">Осень — это не конец,<br/>а более честное начало.</div><Leaf className="dry-leaf" size={42}/></div><div className="book-right-art"><div className="handwriting">Сегодня я заметила,<br/>как золотой свет ложится<br/>на старые фасады.<br/>И кажется, именно<br/>ради этого и стоит<br/>быть здесь. ♡</div><div className="taped-photo rainy-photo"/><div className="handwriting small">маленькие моменты<br/>делают большую жизнь.</div></div><div className="chapter-tabs">{chapters.map(c=><button key={c.id} className={c.id===activeChapter.id?'active':''} onClick={()=>chooseChapter(c)}>{c.n}</button>)}</div></div>
+      <div className="open-book-visual clean-open-book"><div className="book-left-art"><div className="taped-photo photo-sprite" style={photoStyle(2)}/><div className="torn-note">Осень — это не конец,<br/>а более честное начало.</div><Leaf className="dry-leaf" size={42}/></div><div className="book-right-art"><div className="handwriting">Сегодня я заметила,<br/>как золотой свет ложится<br/>на старые фасады.<br/>И кажется, именно<br/>ради этого и стоит<br/>быть здесь. ♡</div><div className="taped-photo photo-sprite" style={photoStyle(5)}/><div className="handwriting small">маленькие моменты<br/>делают большую жизнь.</div></div><div className="chapter-tabs">{chapters.map(c=><button key={c.id} className={c.id===activeChapter.id?'active':''} onClick={()=>chooseChapter(c)}>{c.n}</button>)}</div></div>
       <div className="side-manifesto"><strong>Одна глава.<br/>Одна точка в день.<br/>Один настоящий след.</strong><p>Сайт помогает заметить, запомнить важное и собрать из простых дней настоящую историю — в твоём темпе.</p><a href="#chapter">как это работает <ArrowRight size={14}/></a></div>
     </section>
 
     <section className="route-section" id="route">
       <div className="route-head"><span className="micro dark">ТВОЙ СЕЗОН</span><h2>Двенадцать глав.<br/><i>Один живой маршрут.</i></h2><p>Каждая глава — маленькое приглашение: выйти из привычного, заметить красоту рядом и добавить в свою осень что-то настоящее.</p></div>
-      <div className="route-map"><div className="map-paper-layer one"/><div className="map-paper-layer two"/><svg className="red-route" viewBox="0 0 1200 680" preserveAspectRatio="none" aria-hidden="true"><path d="M75 95 C180 15 260 180 350 120 S545 45 620 145 S820 220 900 125 C1005 8 1110 145 1060 260 C1005 375 815 290 745 395 S540 535 430 430 S170 370 125 510 C80 655 300 600 450 585 S760 705 860 565 S1080 500 1140 625"/></svg><div className="map-stamp"><MapPin size={15}/> личная карта сезона</div><div className="route-grid">{chapters.map((c,i)=><button key={c.id} onClick={()=>chooseChapter(c)} className={`map-card card-${i+1} ${c.free?'free':'locked'} ${activeChapter.id===c.id?'active':''}`}><span className="map-pin"/><div className="map-photo natural-map-photo" style={{backgroundImage:`linear-gradient(rgba(20,20,18,.03),rgba(20,20,18,.08)),url(${c.image})`}}><span>{c.n}</span></div><div className="map-caption"><b>{c.title}</b><small>{c.free?(doneCount?`${doneCount} следа сохранено`:'открыта бесплатно'):'полный сезон'}</small></div>{!c.free&&<LockKeyhole size={14} className="map-lock"/>}</button>)}</div><div className="hand-note map-note">здесь начинается твоя осень ♡</div></div>
+      <div className="route-map"><div className="map-paper-layer one"/><div className="map-paper-layer two"/><svg className="red-route" viewBox="0 0 1200 680" preserveAspectRatio="none" aria-hidden="true"><path d="M75 95 C180 15 260 180 350 120 S545 45 620 145 S820 220 900 125 C1005 8 1110 145 1060 260 C1005 375 815 290 745 395 S540 535 430 430 S170 370 125 510 C80 655 300 600 450 585 S760 705 860 565 S1080 500 1140 625"/></svg><div className="map-stamp"><MapPin size={15}/> личная карта сезона</div><div className="route-grid">{chapters.map((c,i)=><button key={c.id} onClick={()=>chooseChapter(c)} className={`map-card card-${i+1} ${c.free?'free':'locked'} ${activeChapter.id===c.id?'active':''}`}><span className="map-pin"/><div className="map-photo natural-map-photo photo-sprite" style={photoStyle(i)}><span>{c.n}</span></div><div className="map-caption"><b>{c.title}</b><small>{c.free?(doneCount?`${doneCount} следа сохранено`:'открыта бесплатно'):'полный сезон'}</small></div>{!c.free&&<LockKeyhole size={14} className="map-lock"/>}</button>)}</div><div className="hand-note map-note">здесь начинается твоя осень ♡</div></div>
     </section>
 
     <section className="chapter-section" id="chapter" ref={chapterRef}>
       <div className="chapter-heading"><div><span className="micro dark">ГЛАВА {activeChapter.n} / 12</span><h2>{activeChapter.title}</h2><p>{activeChapter.note}</p></div><div className="chapter-label">{activeChapter.free?'открыта полностью':'предпросмотр полного сезона'}</div></div>
       <div className="chapter-journal">
         <div className="journal-left"><span className="micro dark">ВЫБЕРИ ОДНУ ТОЧКУ</span>{activeChapter.free ? <div className="task-list">{freeTasks.map((t,i)=><button key={t.id} className={`${selectedTask.id===t.id?'active':''} ${progress[t.id]?'done':''}`} onClick={()=>setSelectedTask(t)}><span className="task-no">{String(i+1).padStart(2,'0')}</span><div><small>{t.verb}</small><b>{t.title}</b></div>{progress[t.id]&&<Check size={16}/>}</button>)}</div> : <div className="locked-card"><LockKeyhole/><b>Внутри — шесть точек.</b><p>Тема главы видна заранее, но сами задания откроются только в полном сезоне.</p></div>}</div>
-        <div className="journal-right">{activeChapter.free ? <><span className="micro dark">СЕГОДНЯ / {selectedTask.verb}</span><div className="selected-task-photo" style={{backgroundImage:`url(${selectedTask.image})`}}/><h3>{selectedTask.title}</h3><p>{selectedTask.note}</p><div className="journal-note"><NotebookPen size={20}/><span>{selectedTask.prompt}</span></div><button className={`save-button ${progress[selectedTask.id]?'saved':''}`} onClick={()=>toggleTask(selectedTask.id)}>{progress[selectedTask.id]?<><Check/>след уже в архиве</>:<><Leaf/>сохранить этот след</>}</button><div className="chapter-passport"><span className="micro dark">ЛИЧНЫЙ АРХИВ ГЛАВЫ</span><div className="stamp-row">{freeTasks.map(t=><div key={t.id} className={`stamp ${progress[t.id]?'collected':''}`}>{progress[t.id]?<><Leaf size={17}/><small>{t.verb}</small></>:<span/>}</div>)}</div><div className="passport-note">Не баллы. Не серия. Просто следы, которые уже появились.</div></div></> : <div className="preview-spread"><span className="micro dark">ПРЕВЬЮ</span><h3>{activeChapter.title}</h3><p>{activeChapter.note}</p><div className="sealed"><LockKeyhole/><b>6 точек внутри полного сезона</b></div><button className="save-button">открыть полный сезон <ArrowRight size={15}/></button></div>}</div>
+        <div className="journal-right">{activeChapter.free ? <><span className="micro dark">СЕГОДНЯ / {selectedTask.verb}</span><div className="selected-task-photo photo-sprite" style={photoStyle(selectedTaskIndex)}/><h3>{selectedTask.title}</h3><p>{selectedTask.note}</p><div className="journal-note"><NotebookPen size={20}/><span>{selectedTask.prompt}</span></div><button className={`save-button ${progress[selectedTask.id]?'saved':''}`} onClick={()=>toggleTask(selectedTask.id)}>{progress[selectedTask.id]?<><Check/>след уже в архиве</>:<><Leaf/>сохранить этот след</>}</button><div className="chapter-passport"><span className="micro dark">ЛИЧНЫЙ АРХИВ ГЛАВЫ</span><div className="stamp-row">{freeTasks.map(t=><div key={t.id} className={`stamp ${progress[t.id]?'collected':''}`}>{progress[t.id]?<><Leaf size={17}/><small>{t.verb}</small></>:<span/>}</div>)}</div><div className="passport-note">Не баллы. Не серия. Просто следы, которые уже появились.</div></div></> : <div className="preview-spread"><span className="micro dark">ПРЕВЬЮ</span><h3>{activeChapter.title}</h3><p>{activeChapter.note}</p><div className="sealed"><LockKeyhole/><b>6 точек внутри полного сезона</b></div><button className="save-button">открыть полный сезон <ArrowRight size={15}/></button></div>}</div>
       </div>
-      {activeChapter.free&&<div className="saved-archive"><div className="saved-archive-head"><span className="micro dark">СОХРАНЁННЫЕ СЛЕДЫ</span><h3>Они остаются здесь после обновления страницы.</h3></div><div className="saved-archive-grid">{freeTasks.map(t=>progress[t.id]?<article key={t.id} className="saved-card"><div className="saved-card-photo" style={{backgroundImage:`url(${t.image})`}}/><small>{t.verb}</small><b>{t.archiveTitle}</b><span>сохранено в главе 01</span></article>:<article key={t.id} className="saved-card empty"><div className="saved-card-photo empty"><Sparkles size={18}/></div><small>{t.verb}</small><b>Место для следующего следа</b><span>появится после сохранения</span></article>)}</div></div>}
+      {activeChapter.free&&<div className="saved-archive"><div className="saved-archive-head"><span className="micro dark">СОХРАНЁННЫЕ СЛЕДЫ</span><h3>Они остаются здесь после обновления страницы.</h3></div><div className="saved-archive-grid">{freeTasks.map((t,i)=>progress[t.id]?<article key={t.id} className="saved-card"><div className="saved-card-photo photo-sprite" style={photoStyle(i)}/><small>{t.verb}</small><b>{t.archiveTitle}</b><span>сохранено в главе 01</span></article>:<article key={t.id} className="saved-card empty"><div className="saved-card-photo empty"><Sparkles size={18}/></div><small>{t.verb}</small><b>Место для следующего следа</b><span>появится после сохранения</span></article>)}</div></div>}
     </section>
 
     <section className="habit-section">
@@ -160,7 +170,7 @@ function App(){
 
     <section className="bonus-section" id="bonus">
       <div className="bonus-head"><span className="micro dark">МЕЖДУ СТРАНИЦАМИ</span><h2>То, что можно<br/><i>положить внутрь.</i></h2><p>Рецепты доступны полностью. Остальные бонусы можно рассмотреть в превью — ровно столько, чтобы понять настроение полного сезона.</p></div>
-      <div className="bonus-cards">{bonuses.map(b=><article key={b.id} className={activeBonus===b.id?'active-bonus-card':''}><span className="bonus-no">{b.n}</span><div className="bonus-photo natural-bonus-photo" style={{backgroundImage:`url(${b.image})`}}/><small>{b.tag}</small><h3>{b.title}</h3><p>{b.text}</p><button onClick={()=>openBonus(b.id)}>{b.free?'открыть полностью':'посмотреть превью'} <ArrowRight size={14}/></button></article>)}</div>
+      <div className="bonus-cards">{bonuses.map((b,i)=><article key={b.id} className={activeBonus===b.id?'active-bonus-card':''}><span className="bonus-no">{b.n}</span><div className="bonus-photo natural-bonus-photo photo-sprite" style={photoStyle((i+6)%8)}/><small>{b.tag}</small><h3>{b.title}</h3><p>{b.text}</p><button onClick={()=>openBonus(b.id)}>{b.free?'открыть полностью':'посмотреть превью'} <ArrowRight size={14}/></button></article>)}</div>
       {activeBonus&&<div className="bonus-reader" ref={bonusRef}>
         <button className="bonus-close" onClick={()=>setActiveBonus(null)} aria-label="Закрыть"><X size={18}/></button>
         {activeBonus==='recipes'&&<div className="recipes-reader"><div className="bonus-reader-title"><span className="micro dark">БЕСПЛАТНО · ПОЛНОСТЬЮ</span><h3>Пять домашних рецептов</h3><p>Не ресторанные кадры — обычная еда, которую хочется приготовить в выходной и переписать в свой блокнот.</p></div><div className="recipe-list">{recipes.map((r,i)=><article key={r.title} className="recipe-card"><button className="recipe-head" onClick={()=>setOpenRecipe(openRecipe===i?-1:i)}><span>{String(i+1).padStart(2,'0')}</span><div><b>{r.title}</b><small>{r.time}</small></div>{openRecipe===i?<ChevronUp/>:<ChevronDown/>}</button>{openRecipe===i&&<div className="recipe-body"><div><strong>Нужно</strong><ul>{r.ingredients.map(x=><li key={x}>{x}</li>)}</ul></div><div><strong>Как сделать</strong><ol>{r.steps.map(x=><li key={x}>{x}</li>)}</ol></div></div>}</article>)}</div></div>}
@@ -169,9 +179,9 @@ function App(){
       </div>}
     </section>
 
-    <section className="final-section ripped-top"><div className="final-copy"><span className="micro dark">В КОНЦЕ СЕЗОНА</span><h2>Из точек<br/>рождается<br/><i>твоя книга.</i></h2><p>Фотографии, мысли, впечатления, билеты, зарисовки. То, что казалось обычными днями, станет историей, к которой захочется возвращаться.</p></div><div className="final-books"><div className="blank-book"><span>в начале — пустой блокнот</span></div><ArrowRight className="final-arrow"/><div className="filled-book"><div className="mini-polaroid rainy"/><div className="mini-paper">эта осень<br/>была здесь ♡</div><Leaf size={30}/><span>в конце — твоя книга осени</span></div></div></section>
+    <section className="final-section ripped-top"><div className="final-copy"><span className="micro dark">В КОНЦЕ СЕЗОНА</span><h2>Из точек<br/>рождается<br/><i>твоя книга.</i></h2><p>Фотографии, мысли, впечатления, билеты, зарисовки. То, что казалось обычными днями, станет историей, к которой захочется возвращаться.</p></div><div className="final-books"><div className="blank-book"><span>в начале — пустой блокнот</span></div><ArrowRight className="final-arrow"/><div className="filled-book"><div className="mini-polaroid photo-sprite" style={photoStyle(5)}/><div className="mini-paper">эта осень<br/>была здесь ♡</div><Leaf size={30}/><span>в конце — твоя книга осени</span></div></div></section>
 
-    <footer><div className="logo">ПРОЖИВИ<span>бумажный дневник для настоящих моментов</span></div><p>Не ещё один список на осень. Твоя осень, которую ты действительно проживёшь и сохранишь.</p><small className="build-label">{SITE_BUILD}</small></footer>
+    <footer><div className="logo"><BrandLogo compact/><span>бумажный дневник для настоящих моментов</span></div><p>Не ещё один список на осень. Твоя осень, которую ты действительно проживёшь и сохранишь.</p><small className="build-label">{SITE_BUILD}</small></footer>
   </main>
 }
 
