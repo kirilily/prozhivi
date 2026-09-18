@@ -170,3 +170,23 @@ section{position:relative}
   .map-caption b{font-size:14px!important}
   .habit-days{grid-template-columns:repeat(5,1fr)!important}
 }
+
+
+/* QA round 2: fixes from browser measurements */
+.hero-collage-safe{overflow:hidden}
+.ticket-stub{width:124px!important;overflow:hidden}
+.ticket-stub b{font-size:17px!important;overflow-wrap:anywhere}
+.book-under{inset:6% 0 -2% 4%!important}
+.chapter-tabs{right:4px!important}
+.route-map{overflow:hidden!important}
+
+@media(min-width:821px) and (max-width:1100px){
+  .brand-word{font-size:clamp(52px,8vw,72px)!important;letter-spacing:-.09em!important}
+  .approved-hero-logo{overflow:hidden}
+}
+
+@media(max-width:820px){
+  .map-paper-layer{display:none!important}
+  .route-map{overflow:hidden!important}
+  .chapter-tabs{right:2px!important}
+}
