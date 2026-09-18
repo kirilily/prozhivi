@@ -1,4 +1,4 @@
-export const SITE_BUILD = '2026-09-18-reference-cleanup-r1'
+export const SITE_BUILD = '2026-09-18-approved-art-r2'
 
 const u = id => `https://unsplash.com/photos/${id}/download?force=true&w=1400`
 
