@@ -110,15 +110,20 @@ for (const v of viewports){
 
   // Bonus interaction
   const bonusSection=page.locator('#bonus')
-  await bonusSection.scrollIntoViewIfNeeded()
-  const bonusBtn=bonusSection.getByRole('button',{name:/открыть полностью/i}).first()
-  if(await bonusBtn.count()){
-    await bonusBtn.click()
-    await page.waitForTimeout(250)
-    if(!(await page.locator('.bonus-reader').isVisible())) pushFail(v.name,'bonus reader did not open')
-    const recipeCount=await page.locator('.recipe-card').count()
-    if(recipeCount!==5) pushFail(v.name,'free recipes count mismatch',String(recipeCount))
-  } else pushFail(v.name,'free bonus button missing')
+  const bonusCount=await bonusSection.count()
+  if(!bonusCount){
+    pushFail(v.name,'bonus section missing after interactions',`url=${page.url()} body=${(await page.locator('body').innerText()).slice(0,250)}`)
+  }else{
+    await bonusSection.scrollIntoViewIfNeeded({timeout:5000}).catch(err=>pushFail(v.name,'could not scroll to bonus',String(err)))
+    const bonusBtn=bonusSection.getByRole('button',{name:/открыть полностью/i}).first()
+    if(await bonusBtn.count()){
+      await bonusBtn.click()
+      await page.waitForTimeout(250)
+      if(!(await page.locator('.bonus-reader').isVisible())) pushFail(v.name,'bonus reader did not open')
+      const recipeCount=await page.locator('.recipe-card').count()
+      if(recipeCount!==5) pushFail(v.name,'free recipes count mismatch',String(recipeCount))
+    } else pushFail(v.name,'free bonus button missing')
+  }
 
   if(consoleErrors.length) pushFail(v.name,'console/page errors',consoleErrors.join(' | ').slice(0,1200))
 
