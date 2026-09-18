@@ -1,6 +1,6 @@
 import { chromium } from 'playwright'
 
-const BASE = process.env.QA_URL || 'http://127.0.0.1:4173/prozhivi/'
+const BASE = process.env.QA_URL || 'http://127.0.0.1:4173/'
 const viewports = [
   {name:'desktop', width:1440, height:1000},
   {name:'tablet', width:834, height:1112},
