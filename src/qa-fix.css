@@ -1,0 +1,172 @@
+/* QA stabilization pass — 2026-09-18
+   Goal: stop overlaps, remove accidental horizontal overflow, keep layouts readable
+   across desktop/tablet/mobile without changing the approved art direction. */
+
+html,body,#root,.site-shell{max-width:100%;overflow-x:hidden}
+img,svg{max-width:100%}
+button,a,input,textarea{max-width:100%}
+section{position:relative}
+.top-nav{min-width:0}
+.top-nav>*{min-width:0}
+
+.trace-summary{margin-top:24px;padding:16px 18px;border-top:1px dashed #c9bfb2;background:rgba(246,241,231,.72);display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.trace-summary p{margin:7px 0 0;max-width:530px;font-size:11px;line-height:1.55;color:#6c655e}
+.trace-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.trace-chips span{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border-radius:999px;background:#e8eadf;color:#4f5847;font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+
+/* HERO: keep content and decoration in separate stable columns */
+.cinematic-hero{display:grid!important;grid-template-columns:minmax(0,1.02fr) minmax(390px,.98fr);grid-template-rows:auto auto;column-gap:44px;align-items:start;min-height:auto!important;padding:122px clamp(22px,5vw,78px) 72px!important}
+.hero-content-safe{grid-column:1;grid-row:1;width:auto!important;max-width:680px;padding-top:22px!important}
+.hero-collage-safe{grid-column:2;grid-row:1;position:relative!important;inset:auto!important;width:100%!important;max-width:520px;height:360px!important;justify-self:end;margin-top:10px}
+.lux-book,.lux-book.open{grid-column:1/-1;grid-row:2;position:relative!important;inset:auto!important;justify-self:center;width:min(760px,82vw)!important;height:500px!important;margin:42px auto 0!important}
+.lux-book:not(.open){width:min(460px,72vw)!important}
+.hero-note{margin-left:0!important}
+.brand-word{max-width:100%}
+
+/* INTRO: prevent the physical-book illustration from crushing copy */
+.clean-intro{grid-template-columns:minmax(230px,.72fr) minmax(0,1.4fr) minmax(220px,.62fr)!important;gap:42px!important}
+.clean-intro>*{min-width:0}
+.clean-open-book{width:100%;min-width:0;max-width:820px;justify-self:center}
+.clean-open-book .book-left-art,.clean-open-book .book-right-art{min-width:0}
+.chapter-tabs{z-index:8}
+.paper-copy,.side-manifesto{overflow-wrap:anywhere}
+
+/* MAP: stable grid rather than Pinterest cards spilling outside their paper */
+.route-map{min-height:0!important;padding:62px 34px 54px!important}
+.route-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:30px 22px!important}
+.map-card{min-width:0!important;margin-top:0!important}
+.map-card:nth-child(n){transform:rotate(0)!important}
+.map-card:nth-child(3n+1){transform:rotate(-1deg)!important}
+.map-card:nth-child(3n+2){transform:rotate(.8deg)!important}
+.map-photo{width:100%;min-width:0}
+.map-caption b{overflow-wrap:anywhere}
+
+/* CHAPTER: make each side independently safe */
+.chapter-journal{grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr)!important;min-height:0!important}
+.journal-left,.journal-right{min-width:0!important;padding:38px 34px!important}
+.chapter-journal:after{left:39%!important}
+.task-list button{min-width:0}
+.task-list button>div{min-width:0}
+.task-list b{overflow-wrap:anywhere}
+.selected-task-photo{width:100%;max-width:620px}
+.journal-note{min-width:0}
+.journal-note span{min-width:0;overflow-wrap:anywhere}
+
+/* TRACKER: no rotated sheet escaping viewport */
+.habit-section{grid-template-columns:minmax(260px,.78fr) minmax(0,1.22fr)!important;gap:64px!important}
+.habit-sheet{transform:none!important;width:100%;min-width:0}
+.habit-days{grid-template-columns:repeat(10,minmax(0,1fr))!important}
+.habit-days button{min-width:0}
+
+/* BONUSES */
+.bonus-section{grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr)!important;gap:64px!important}
+.bonus-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.bonus-cards article{min-width:0}
+.bonus-photo{width:100%}
+.bonus-reader{width:100%;min-width:0}
+.recipe-head>*{min-width:0}
+.watch-grid article{min-width:0}
+
+/* final section/book cards */
+.final-section{overflow:hidden}
+.final-books{min-width:0}
+.blank-book,.filled-book{min-width:0}
+
+/* Tablet */
+@media(max-width:1100px){
+  .top-nav nav{gap:16px}
+  .nav-action{padding:10px 11px}
+  .cinematic-hero{grid-template-columns:minmax(0,1fr) minmax(300px,.75fr);column-gap:24px}
+  .hero-collage-safe{height:320px!important}
+  .clean-intro{grid-template-columns:1fr 1.3fr!important}
+  .clean-intro .side-manifesto{grid-column:1/-1!important;max-width:780px}
+  .route-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .chapter-journal{grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr)!important}
+  .habit-section,.bonus-section{gap:38px!important}
+}
+
+/* Mobile */
+@media(max-width:820px){
+  .top-nav{height:62px;padding:0 14px;gap:10px}
+  .top-nav nav{display:none!important}
+  .top-nav .logo>span:last-child{display:none}
+  .nav-action{font-size:0;padding:10px;width:40px;height:40px;justify-content:center;border-radius:50%}
+  .nav-action svg{width:16px;height:16px}
+
+  .cinematic-hero{display:block!important;padding:88px 16px 54px!important}
+  .hero-content-safe{width:100%!important;max-width:none}
+  .approved-hero-logo{overflow:hidden}
+  .brand-word{font-size:clamp(52px,16vw,82px)!important;letter-spacing:-.105em}
+  .hero-editorial-copy{font-size:clamp(35px,10.5vw,48px)!important;line-height:.96!important}
+  .hero-content>p{font-size:14px!important}
+  .hero-buttons{align-items:stretch}
+  .hero-buttons button,.hero-buttons a{min-height:44px}
+  .ambient-control{max-width:none!important}
+
+  .hero-collage-safe{position:relative!important;width:100%!important;max-width:none;height:220px!important;margin:30px 0 0!important;overflow:hidden}
+  .hero-collage-safe .hp-one{width:160px!important;height:116px!important;right:6px!important;top:2px!important}
+  .hero-collage-safe .hp-two{width:140px!important;height:104px!important;right:104px!important;top:102px!important}
+  .hero-collage-safe .pn-one{right:8px!important;top:126px!important;font-size:16px!important}
+  .hero-collage-safe .ticket-stub{left:4px!important;bottom:2px!important}
+
+  .lux-book,.lux-book.open,.lux-book:not(.open){position:relative!important;width:100%!important;max-width:620px!important;height:420px!important;margin:34px auto 0!important}
+  .book-inside{grid-template-columns:1fr 1fr!important}
+  .inside-page{padding:20px 15px!important}
+  .inside-page h2{font-size:25px!important;margin:22px 0 14px!important}
+  .inside-page p{font-size:9px!important;line-height:1.5}
+  .book-menu{margin-top:18px!important}
+  .book-menu button,.book-menu div{padding:6px!important;grid-template-columns:22px 1fr auto!important}
+  .book-menu span{font-size:7px!important}
+  .book-cover strong{font-size:45px!important}
+
+  .paper-intro,.clean-intro{display:grid!important;grid-template-columns:1fr!important;padding:68px 16px!important;gap:28px!important}
+  .paper-copy h2{font-size:58px!important}
+  .clean-open-book{min-height:460px!important;width:100%;border-width:5px}
+  .chapter-tabs{right:-20px!important}
+  .chapter-tabs button{width:24px!important;height:30px!important;font-size:8px!important}
+  .side-manifesto{grid-column:auto!important}
+
+  .route-section,.chapter-section,.habit-section,.bonus-section,.final-section{padding-left:16px!important;padding-right:16px!important}
+  .route-head{display:block!important}
+  .route-head h2,.chapter-heading h2,.bonus-head h2,.habit-copy h2,.final-copy h2{font-size:54px!important}
+  .route-map{padding:50px 12px 34px!important}
+  .route-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:18px 12px!important}
+  .map-photo{height:105px!important}
+  .map-caption b{font-size:16px!important}
+  .map-note{display:none!important}
+
+  .chapter-heading{display:block!important}
+  .chapter-label{display:inline-block;margin-top:8px}
+  .chapter-journal{display:grid!important;grid-template-columns:1fr!important;border-width:5px!important}
+  .chapter-journal:after{display:none!important}
+  .journal-left,.journal-right{padding:28px 18px!important}
+  .selected-task-photo{height:180px!important;margin:15px 0 20px!important}
+  .journal-right h3{font-size:48px!important}
+  .stamp-row{grid-template-columns:repeat(3,1fr)!important}
+
+  .trace-summary{display:block;padding:14px}
+  .trace-chips{justify-content:flex-start;margin-top:12px}
+
+  .habit-section,.bonus-section{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
+  .habit-days{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  .bonus-cards{grid-template-columns:1fr!important}
+  .bonus-reader{padding:28px 14px!important}
+
+  .final-section{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
+  .final-books{width:100%;overflow:hidden}
+}
+
+/* narrow phones */
+@media(max-width:430px){
+  .brand-word{font-size:49px!important}
+  .approved-hero-logo>small{font-size:6px!important;letter-spacing:.18em!important}
+  .hero-collage-safe{height:205px!important}
+  .lux-book,.lux-book.open,.lux-book:not(.open){height:390px!important}
+  .inside-page{padding:16px 11px!important}
+  .inside-page h2{font-size:21px!important}
+  .book-menu span{font-size:6px!important}
+  .route-grid{grid-template-columns:1fr 1fr!important}
+  .map-photo{height:92px!important}
+  .map-caption b{font-size:14px!important}
+  .habit-days{grid-template-columns:repeat(5,1fr)!important}
+}
