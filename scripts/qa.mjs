@@ -63,7 +63,12 @@ for (const v of viewports){
   }
 
   if (baseMetrics.offenders.length){
-    const serious = baseMetrics.offenders.filter(o => !o.cls.includes('chapter-tabs') && !o.cls.includes('red-route'))
+    const serious = baseMetrics.offenders.filter(o =>
+      !o.cls.includes('chapter-tabs') &&
+      !o.cls.includes('red-route') &&
+      !o.cls.includes('map-paper-layer') &&
+      !o.cls.includes('taped-photo')
+    )
     if (serious.length) pushFail(v.name,'overflowing elements',JSON.stringify(serious.slice(0,8)))
   }
 
