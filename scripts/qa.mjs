@@ -43,8 +43,9 @@ for (const v of viewports){
     }
     const offenders=[...document.querySelectorAll('body *')].map(el=>{
       const r=el.getBoundingClientRect()
-      return {tag:el.tagName,cls:String(el.className||''),x:r.x,right:r.right,width:r.width,sw:el.scrollWidth,cw:el.clientWidth}
-    }).filter(o=>o.width>1 && (o.x < -3 || o.right > innerWidth+3 || o.sw > o.cw+8)).slice(0,30)
+      const st=getComputedStyle(el)
+      return {tag:el.tagName,cls:String(el.className||''),x:r.x,right:r.right,width:r.width,sw:el.scrollWidth,cw:el.clientWidth,ovx:st.overflowX}
+    }).filter(o=>o.width>1 && (o.x < -3 || o.right > innerWidth+3 || ((o.ovx==='visible'||o.ovx==='clip') && o.sw > o.cw+8))).slice(0,30)
     return {
       innerWidth,
       scrollWidth:root.scrollWidth,
