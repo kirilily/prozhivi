@@ -1,0 +1,37 @@
+name: QA PROZHIVI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Build
+        run: npm run build
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/prozhivi-preview.log 2>&1 &
+          echo $! > /tmp/prozhivi-preview.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/prozhivi/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/prozhivi-preview.log
+          exit 1
+      - name: Run browser QA
+        run: npm run qa
